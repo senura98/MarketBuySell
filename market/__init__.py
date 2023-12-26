@@ -14,6 +14,7 @@ app = Flask(__name__)
 #adding configurations - its a dictionary
 #URI - uri is an identifier while url is a link
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
+app.config['SECRET_KEY']='c492acd84e08f3c8002f5deb'
 db = SQLAlchemy(app)
 
 from market import routes
