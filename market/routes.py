@@ -1,9 +1,11 @@
 from market import app
-from flask import render_template,redirect,url_for
+from flask import render_template,redirect,url_for,flash,get_flashed_messages
 from market.models import User
 from market.models import Item
 from market.forms import RegisterForm
 from market import db
+
+#flash is an inbuilt way of flask to ping the errors that gets rendered from validations
 
 #when sending data from client to server you need to be carefull about crossite forgery its a way of stealing or accessing database
 
@@ -35,5 +37,6 @@ def register_page():
     #This is a built in dictionary so need to check if its empty or not
     if form.errors !={}: #if there are no errors from validation
         for err_msg in form.errors.values():
-            print(f'There was an error with creating a user:{err_msg}')
+            #we can give the messages a category 
+            flash(f'There was an error with creating a user:{err_msg}',category='danger')
     return render_template('register.html',form=form)
