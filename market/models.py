@@ -3,7 +3,7 @@ from market import db,login_manager
 from market import bcrypt
 from flask_login import UserMixin
 
-
+#when ever a request is made flask_login uses this user_loader to retrieve the current_user
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
