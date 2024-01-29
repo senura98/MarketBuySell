@@ -2,7 +2,7 @@ from market import app
 from flask import render_template,redirect,url_for,flash,request
 from market.models import User
 from market.models import Item
-from market.forms import RegisterForm,PurchaseItemForm,LoginForm
+from market.forms import RegisterForm,PurchaseItemForm,LoginForm,SellItemForm
 from flask_login import login_user,logout_user,login_required,current_user
 from market import db
 
@@ -23,20 +23,34 @@ def home_page():
 @login_required
 def market_page():
     purchase_form = PurchaseItemForm()
+    selling_form=SellItemForm()
     if request.method=="POST":
         #can see the key and value pairs inside purchase form
             #print(purchase_form.__dict__)
+        #Purchase Item Logic
         purchased_item=request.form.get('purchased_item')
         p_item_object=Item.query.filter_by(name=purchased_item).first()
         if p_item_object:
+            if current_user.can_purchase(p_item_object):
             #there is a field to represent ownership in the user model
-            p_item_object.owner=current_user.id
-            current_user.budget =  current_user.budget - p_item_object.price
-            db.session.commit()
-            flash(f"Congratulations! You purchased {p_item_object.name} for {p_item_object.price}")
+                p_item_object.buy(current_user)
+                flash(f"Congratulations! You purchased {p_item_object.name} for {p_item_object.price}",category="success")
+            else:
+                flash(f"Unfortunately, you dont have enough money to purchase{p_item_object.name}",category="danger")
+        #Sell Item Logic
+        sold_item = request.form.get('sold_item')
+        s_item_object=Item.query.filter_by(name=sold_item).first()
+        if s_item_object:
+            if current_user.can_sell(s_item_object):
+                s_item_object.sell(current_user)
+                flash(f"Congratulations! You sold {s_item_object.name} back to market!",category="success")
+            else:
+                flash(f"Something went wrong with selling {s_item_object.name} ",category="danger")
+        return redirect(url_for('market_page'))
     if request.method=="GET":
         item = Item.query.filter_by(owner=None)
-        return render_template('market.html', item=item, purchase_form=purchase_form)
+        owned_items=Item.query.filter_by(owner=current_user.id)
+        return render_template('market.html', item=item, purchase_form=purchase_form, owned_items=owned_items,selling_form=selling_form)
 
 #creating a new object of the Registerform class and passing it to register.html
 @app.route('/register',methods=['GET','POST'])
